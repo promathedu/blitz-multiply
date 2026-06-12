@@ -1,9 +1,9 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Бліц-Таблиця Множення</title>
+    <title>ProMath: Бліц-Множення</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background: #eef2f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; color: #333; }
@@ -18,23 +18,47 @@
         #score { color: #2ecc71; font-size: 22px; }
         
         /* Зона завдання */
-        .task-box { font-size: 42px; font-weight: bold; margin: 15px 0; color: #2c3e50; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        #user-answer { width: 110px; font-size: 36px; text-align: center; border: 3px solid #3498db; border-radius: 12px; padding: 5px; background: #fafafa; color: #2c3e50; }
+        .task-box { font-size: 42px; font-weight: bold; margin: 15px 0; color: #2c3e50; display: flex; justify-content: center; align-items: center; gap: 10px; border-radius: 16px; padding: 10px; transition: background-color 0.2s; }
+        #user-answer { width: 110px; font-size: 36px; text-align: center; border: 3px solid #3498db; border-radius: 12px; padding: 5px; background: #fafafa; color: #2c3e50; transition: all 0.2s; }
+        
+        /* Анімації спалаху відповіді */
+        .flash-correct { background-color: rgba(46, 204, 113, 0.2) !important; border-color: #2ecc71 !important; }
+        .flash-wrong { background-color: rgba(231, 76, 60, 0.2) !important; border-color: #e74c3c !important; animation: shake 0.2s ease-in-out; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
         
         /* Екранна клавіатура */
         .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto; }
-        .key { background: #ffffff; border: 2px solid #dcdde1; border-radius: 12px; padding: 18px; font-size: 24px; font-weight: bold; color: #2c3e50; cursor: pointer; -webkit-tap-highlight-color: transparent; box-shadow: 0 3px 0 #dcdde1; transition: all 0.1s; }
+        .key { background: #ffffff; border: 2px solid #dcdde1; border-radius: 12px; padding: 18px; font-size: 24px; font-weight: bold; color: #2c3e50; cursor: pointer; -webkit-tap-highlight-color: transparent; box-shadow: 0 4px 0 #dcdde1; transition: all 0.1s; }
         .key:active { transform: translateY(3px); box-shadow: none; background: #f5f6fa; }
         
         /* Пусті прозорі клітинки для структури */
         .key.empty { background: transparent; border: none; box-shadow: none; cursor: default; pointer-events: none; }
         
-        .key.clear { background: #fab1a0; border-color: #ff7675; color: #c0392b; box-shadow: 0 3px 0 #ff7675; }
+        .key.clear { background: #fab1a0; border-color: #ff7675; color: #c0392b; box-shadow: 0 4px 0 #ff7675; }
         .key.clear:active { background: #ff7675; }
         
-        /* КНОПКА ОК НА ВСЮ ШИРИНУ (3 КОЛОНКИ) */
-        .key.ok { background: #55efc4; border-color: #00b894; color: #009432; grid-column: span 3; box-shadow: 0 3px 0 #00b894; font-size: 26px; padding: 20px; }
-        .key.ok:active { background: #00b894; }
+        /* НОВА КРАСИВА КНОПКА ОК НА ВСЮ ШИРИНУ */
+        .key.ok { 
+            background: linear-gradient(135deg, #1dd1a1, #10ac84); 
+            border: none;
+            color: white; 
+            grid-column: span 3; 
+            box-shadow: 0 5px 0 #0f8667, 0 8px 15px rgba(26, 188, 156, 0.3); 
+            font-size: 26px; 
+            padding: 18px; 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.15);
+            border-radius: 14px;
+        }
+        .key.ok:active { 
+            transform: translateY(4px); 
+            box-shadow: 0 1px 0 #0f8667; 
+            background: linear-gradient(135deg, #10ac84, #0f8667);
+        }
         
         /* П'єдестал */
         .podium-container { display: flex; justify-content: center; align-items: flex-end; height: 160px; margin: 20px auto; width: 100%; max-width: 280px; }
@@ -64,7 +88,7 @@
 
 <div class="container">
     <div id="start-screen">
-        <h2 style="margin-top: 20px;">🚀 Бліц-Множення</h2>
+        <h2 style="margin-top: 20px;">🚀 ProMath: Бліц-Множення</h2>
         <p>Скільки правильних відповідей ти встигнеш дати за 1 хвину?</p>
         <div style="font-size: 80px; margin: 40px 0;">⏱️</div>
         <button class="action-btn" onclick="startGame()">ПОЧАТИ ГРУ</button>
@@ -76,7 +100,7 @@
             <div>⭐ Бали: <span id="score">0</span></div>
         </div>
         
-        <div class="task-box">
+        <div class="task-box" id="task-zone">
             <span id="num1">5</span> × <span id="num2">6</span> = 
             <input type="text" id="user-answer" readonly placeholder="?">
         </div>
@@ -129,8 +153,8 @@
         <button class="action-btn" onclick="restartGame()">ЗІГРАТИ ЩЕ РАЗ 🔄</button>
 
         <div class="records-info">
-            <div>🥇 <strong>1-ше місце (Золото)</strong> — 35+ відповідей: <em>«Неймовірно! Ти справжній Магістр Множення! Твій мозок працює як калькулятор!»</em></div>
-            <div>🥈 <strong>2-ге місце (Срібло)</strong> — 20–34 відповіді: <em>«Супер результат! Ти рахуєш майже миттєво. Ще трохи практики — і ти на вершині!»</em></div>
+            <div>🥇 <strong>1-ше місце (Золото)</strong> — 30+ відповідей: <em>«Неймовірно! Ти справжній Магістр Множення! Твій мозок працює як калькулятор! 🥇»</em></div>
+            <div>🥈 <strong>2-ге місце (Срібло)</strong> — 20–29 відповіді: <em>«Супер результат! Ти рахуєш майже миттєво. Ще трохи практики — і ти на вершині!»</em></div>
             <div>🥉 <strong>3-тє місце (Бронза)</strong> — 10–19 відповідей: <em>«Гарний старт! Ти вже впевнено рахуєш. Твоя наступна мета — Срібло!»</em></div>
             <div>🏃‍♂️ <strong>Поза п'єдесталом</strong> (менше 10 відповідей): <em>«Ти на розігріві! Зроби ще одну спробу, щоб застрибнути на 3-тє місце!»</em></div>
         </div>
@@ -197,19 +221,41 @@
 
     function checkAnswer() {
         const input = document.getElementById('user-answer');
+        const taskZone = document.getElementById('task-zone');
         const ans = parseInt(input.value);
         if (isNaN(ans)) return;
 
         const correctAnswer = n1 * n2;
 
+        // Видаляємо попередні класи анімації перед новим спалахом
+        input.classList.remove('flash-correct', 'flash-wrong');
+        taskZone.classList.remove('flash-correct');
+
         if (ans === correctAnswer) {
             score++;
             document.getElementById('score').innerText = score;
+            
+            // Візуальний відгук на правильну відповідь
+            input.classList.add('flash-correct');
+            taskZone.classList.add('flash-correct');
+            
+            setTimeout(() => {
+                input.classList.remove('flash-correct');
+                taskZone.classList.remove('flash-correct');
+                generateTask();
+            }, 200);
         } else {
             wrongAnswers++;
             wrongList.push(`${n1} × ${n2} = ${correctAnswer} (а не ${ans})`);
+            
+            // Візуальний відгук на помилку
+            input.classList.add('flash-wrong');
+            
+            setTimeout(() => {
+                input.classList.remove('flash-wrong');
+                generateTask();
+            }, 200);
         }
-        generateTask();
     }
 
     function endGame() {
@@ -224,17 +270,18 @@
         
         let motivText = "";
         
-        if (score >= 35) {
+        // Перевірка результатів за оновленими правилами (Золото 30+, Срібло 20-29)
+        if (score >= 30) {
             document.getElementById('p1').innerHTML += '<div class="hero-marker">🙋‍♂️</div>';
-            motivText = "🏆 ТИ НА ВЕРШИНІ! Абсолютне Золото! Ти знаєш таблицю множення як суперкомп'ютер. Пишаюся тобою!";
+            motivText = "🏆 ТИ НА ВЕРШИНІ! Абсолютне Золото! Твій мозок працює як калькулятор! Ти справжній Магістр Множення! 🥇";
         } else if (score >= 20) {
             document.getElementById('p2').innerHTML += '<div class="hero-marker">🙋‍♂️</div>';
-            motivText = "🥈 Срібний призер! Результат чудовий. Тобі не вистачає зовсім трохи швидкості до Золота. Спробуй ще раз!";
+            motivText = "🥈 Срібний призер! Супер результат! Ти рахуєш майже миттєво. Ще трохи практики — і ти на вершині!";
         } else if (score >= 10) {
             document.getElementById('p3').innerHTML += '<div class="hero-marker">🙋‍♂️</div>';
-            motivText = "🥉 Бронзове місце твоє! Гарний старт. Твоя наступна мета — наздогнати Срібного призера!";
+            motivText = "🥉 Бронзове місце твоє! Гарний старт! Ти вже впевнено рахуєш. Твоя наступна мета — Срібло!";
         } else {
-            motivText = "🏃‍♂️ Ти на розігріві! Поки що ти поруч із подіумом. Набери 10 балів, щоб застрибнути на 3-тє місце. Ти точно зможеш!";
+            motivText = "🏃‍♂️ Ти на розігріві! Зроби ще одну спробу, щоб застрибнути на 3-тє місце!";
         }
         
         document.getElementById('motivation-text').innerText = motivText;
