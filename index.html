@@ -42,7 +42,7 @@
         .key.clear { background: #fab1a0; border-color: #ff7675; color: #c0392b; box-shadow: 0 4px 0 #ff7675; }
         .key.clear:active { background: #ff7675; }
         
-        /* НОВА КРАСИВА КНОПКА ОК НА ВСЮ ШИРИНУ */
+        /* КНОПКА ОК НА ВСЮ ШИРИНУ */
         .key.ok { 
             background: linear-gradient(135deg, #1dd1a1, #10ac84); 
             border: none;
@@ -153,9 +153,9 @@
         <button class="action-btn" onclick="restartGame()">ЗІГРАТИ ЩЕ РАЗ 🔄</button>
 
         <div class="records-info">
-            <div>🥇 <strong>1-ше місце (Золото)</strong> — 30+ відповідей: <em>«Неймовірно! Ти справжній Магістр Множення! Твій мозок працює як калькулятор! 🥇»</em></div>
-            <div>🥈 <strong>2-ге місце (Срібло)</strong> — 20–29 відповіді: <em>«Супер результат! Ти рахуєш майже миттєво. Ще трохи практики — і ти на вершині!»</em></div>
-            <div>🥉 <strong>3-тє місце (Бронза)</strong> — 10–19 відповідей: <em>«Гарний старт! Ти вже впевнено рахуєш. Твоя наступна мета — Срібло!»</em></div>
+            <div>🥇 <strong>1-ше місце (Золото)</strong> — 26+ відповідей: <em>«Неймовірно! Ти справжній Магістр Множення! Твій мозок працює як калькулятор!»</em></div>
+            <div>🥈 <strong>2-ге місце (Срібло)</strong> — 18–25 відповіді: <em>«Супер результат! Ти рахуєш майже миттєво. Ще трохи практики — і ти на вершині!»</em></div>
+            <div>🥉 <strong>3-тє місце (Бронза)</strong> — 10–17 відповідей: <em>«Гарний старт! Ти вже впевнено рахуєш. Твоя наступна мета — Срібло!»</em></div>
             <div>🏃‍♂️ <strong>Поза п'єдесталом</strong> (менше 10 відповідей): <em>«Ти на розігріві! Зроби ще одну спробу, щоб застрибнути на 3-тє місце!»</em></div>
         </div>
     </div>
@@ -227,7 +227,6 @@
 
         const correctAnswer = n1 * n2;
 
-        // Видаляємо попередні класи анімації перед новим спалахом
         input.classList.remove('flash-correct', 'flash-wrong');
         taskZone.classList.remove('flash-correct');
 
@@ -235,7 +234,6 @@
             score++;
             document.getElementById('score').innerText = score;
             
-            // Візуальний відгук на правильну відповідь
             input.classList.add('flash-correct');
             taskZone.classList.add('flash-correct');
             
@@ -248,7 +246,6 @@
             wrongAnswers++;
             wrongList.push(`${n1} × ${n2} = ${correctAnswer} (а не ${ans})`);
             
-            // Візуальний відгук на помилку
             input.classList.add('flash-wrong');
             
             setTimeout(() => {
@@ -270,11 +267,11 @@
         
         let motivText = "";
         
-        // Перевірка результатів за оновленими правилами (Золото 30+, Срібло 20-29)
-        if (score >= 30) {
+        // Логіка визначення місць за новими правилами (26+, 18-25, 10-17)
+        if (score >= 26) {
             document.getElementById('p1').innerHTML += '<div class="hero-marker">🙋‍♂️</div>';
             motivText = "🏆 ТИ НА ВЕРШИНІ! Абсолютне Золото! Твій мозок працює як калькулятор! Ти справжній Магістр Множення! 🥇";
-        } else if (score >= 20) {
+        } else if (score >= 18) {
             document.getElementById('p2').innerHTML += '<div class="hero-marker">🙋‍♂️</div>';
             motivText = "🥈 Срібний призер! Супер результат! Ти рахуєш майже миттєво. Ще трохи практики — і ти на вершині!";
         } else if (score >= 10) {
