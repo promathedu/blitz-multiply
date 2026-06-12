@@ -1,0 +1,265 @@
+ <!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Бліц-Таблиця Множення</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #eef2f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; color: #333; }
+        
+        .container { background: white; width: 100%; max-width: 450px; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 85vh; }
+        
+        h2 { font-size: 24px; color: #2c3e50; margin-bottom: 15px; }
+        p { font-size: 16px; color: #7f8c8d; margin-bottom: 20px; }
+        
+        .stats { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; margin-bottom: 15px; padding: 0 10px; }
+        #timer { color: #e74c3c; font-size: 22px; }
+        #score { color: #2ecc71; font-size: 22px; }
+        
+        /* Зона завдання */
+        .task-box { font-size: 42px; font-weight: bold; margin: 15px 0; color: #2c3e50; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        #user-answer { width: 110px; font-size: 36px; text-align: center; border: 3px solid #3498db; border-radius: 12px; padding: 5px; background: #fafafa; color: #2c3e50; }
+        
+        /* Екранна клавіатура */
+        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto; }
+        .key { background: #ffffff; border: 2px solid #dcdde1; border-radius: 12px; padding: 18px; font-size: 24px; font-weight: bold; color: #2c3e50; cursor: pointer; -webkit-tap-highlight-color: transparent; box-shadow: 0 3px 0 #dcdde1; transition: all 0.1s; }
+        .key:active { transform: translateY(3px); box-shadow: none; background: #f5f6fa; }
+        
+        /* Пусті прозорі клітинки для структури */
+        .key.empty { background: transparent; border: none; box-shadow: none; cursor: default; pointer-events: none; }
+        
+        .key.clear { background: #fab1a0; border-color: #ff7675; color: #c0392b; box-shadow: 0 3px 0 #ff7675; }
+        .key.clear:active { background: #ff7675; }
+        
+        /* КНОПКА ОК НА ВСЮ ШИРИНУ (3 КОЛОНКИ) */
+        .key.ok { background: #55efc4; border-color: #00b894; color: #009432; grid-column: span 3; box-shadow: 0 3px 0 #00b894; font-size: 26px; padding: 20px; }
+        .key.ok:active { background: #00b894; }
+        
+        /* П'єдестал */
+        .podium-container { display: flex; justify-content: center; align-items: flex-end; height: 160px; margin: 20px auto; width: 100%; max-width: 280px; }
+        .pedestal { width: 33%; text-align: center; color: white; font-weight: bold; font-size: 18px; display: flex; flex-direction: column; justify-content: space-between; padding-top: 10px; border-radius: 8px 8px 0 0; position: relative; }
+        .place-3 { background: #cd7f32; height: 60px; order: 3; }
+        .place-1 { background: #f1c40f; height: 120px; order: 2; box-shadow: 0 0 15px rgba(241,196,15,0.4); }
+        .place-2 { background: #bdc3c7; height: 90px; order: 1; }
+        .hero-marker { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); font-size: 28px; animation: bounce 0.8s infinite alternate; }
+        @keyframes bounce { from { top: -40px; } to { top: -48px; } }
+        
+        /* Список помилок */
+        .errors-box { text-align: left; background: #fff0f0; padding: 12px; border-radius: 10px; max-height: 120px; overflow-y: auto; margin: 15px 0; font-size: 15px; border: 1px solid #ffcccc; }
+        .errors-box h4 { color: #c0392b; margin-bottom: 5px; }
+        
+        /* Таблиця рекордів під кнопкою */
+        .records-info { text-align: left; background: #f8f9fa; border: 1px dashed #b2bec3; padding: 12px; border-radius: 10px; margin-top: 15px; font-size: 13px; line-height: 1.4; color: #2c3e50; }
+        .records-info div { margin-bottom: 6px; }
+        .records-info div:last-child { margin-bottom: 0; }
+        
+        .action-btn { background: #3498db; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0 4px 0 #2980b9; }
+        .action-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="start-screen">
+        <h2 style="margin-top: 20px;">🚀 Бліц-Множення</h2>
+        <p>Скільки правильних відповідей ти встигнеш дати за 1 хвину?</p>
+        <div style="font-size: 80px; margin: 40px 0;">⏱️</div>
+        <button class="action-btn" onclick="startGame()">ПОЧАТИ ГРУ</button>
+    </div>
+
+    <div id="game-screen" class="hidden" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="stats">
+            <div>⏱️ <span id="timer">60</span>с</div>
+            <div>⭐ Бали: <span id="score">0</span></div>
+        </div>
+        
+        <div class="task-box">
+            <span id="num1">5</span> × <span id="num2">6</span> = 
+            <input type="text" id="user-answer" readonly placeholder="?">
+        </div>
+        
+        <div class="keyboard">
+            <div class="key empty"></div>
+            <div class="key empty"></div>
+            <div class="key clear" onclick="pressKey('C')">⌫</div>
+            
+            <div class="key" onclick="pressKey('1')">1</div>
+            <div class="key" onclick="pressKey('2')">2</div>
+            <div class="key" onclick="pressKey('3')">3</div>
+            
+            <div class="key" onclick="pressKey('4')">4</div>
+            <div class="key" onclick="pressKey('5')">5</div>
+            <div class="key" onclick="pressKey('6')">6</div>
+            
+            <div class="key" onclick="pressKey('7')">7</div>
+            <div class="key" onclick="pressKey('8')">8</div>
+            <div class="key" onclick="pressKey('9')">9</div>
+            
+            <div class="key empty"></div>
+            <div class="key" onclick="pressKey('0')">0</div>
+            <div class="key empty"></div>
+            
+            <div class="key ok" onclick="pressKey('OK')">ОК 👍</div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h2>Твій результат!</h2>
+        <p style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">
+            ✅ Правильно: <span id="final-score" style="color:#2ecc71;">0</span> | 
+            ❌ Помилок: <span id="final-wrong" style="color:#e74c3c;">0</span>
+        </p>
+
+        <div class="podium-container">
+            <div class="pedestal place-1" id="p1">1🥇</div>
+            <div class="pedestal place-2" id="p2">2🥈</div>
+            <div class="pedestal place-3" id="p3">3🥉</div>
+        </div>
+
+        <p id="motivation-text" style="font-weight: bold; font-size: 15px; margin: 10px 0; padding: 0 10px;"></p>
+        
+        <div id="errors-wrapper" class="errors-box hidden">
+            <h4>💡 Варто повторити:</h4>
+            <div id="errors-list"></div>
+        </div>
+
+        <button class="action-btn" onclick="restartGame()">ЗІГРАТИ ЩЕ РАЗ 🔄</button>
+
+        <div class="records-info">
+            <div>🥇 <strong>1-ше місце (Золото)</strong> — 35+ відповідей: <em>«Неймовірно! Ти справжній Магістр Множення! Твій мозок працює як калькулятор!»</em></div>
+            <div>🥈 <strong>2-ге місце (Срібло)</strong> — 20–34 відповіді: <em>«Супер результат! Ти рахуєш майже миттєво. Ще трохи практики — і ти на вершині!»</em></div>
+            <div>🥉 <strong>3-тє місце (Бронза)</strong> — 10–19 відповідей: <em>«Гарний старт! Ти вже впевнено рахуєш. Твоя наступна мета — Срібло!»</em></div>
+            <div>🏃‍♂️ <strong>Поза п'єдесталом</strong> (менше 10 відповідей): <em>«Ти на розігріві! Зроби ще одну спробу, щоб застрибнути на 3-тє місце!»</em></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let score = 0;
+    let wrongAnswers = 0;
+    let timeLeft = 60;
+    let timerInterval;
+    let n1, n2;
+    let wrongList = [];
+
+    function startGame() {
+        score = 0;
+        wrongAnswers = 0;
+        timeLeft = 60;
+        wrongList = [];
+        document.getElementById('score').innerText = score;
+        document.getElementById('timer').innerText = timeLeft;
+        document.getElementById('user-answer').value = '';
+        
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        
+        generateTask();
+        startTimer();
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }, 1000);
+    }
+
+    function generateTask() {
+        n1 = Math.floor(Math.random() * 8) + 2; 
+        n2 = Math.floor(Math.random() * 8) + 2; 
+        document.getElementById('num1').innerText = n1;
+        document.getElementById('num2').innerText = n2;
+        document.getElementById('user-answer').value = '';
+    }
+
+    function pressKey(key) {
+        const input = document.getElementById('user-answer');
+        
+        if (key === 'C') {
+            input.value = input.value.slice(0, -1);
+        } else if (key === 'OK') {
+            checkAnswer();
+        } else {
+            if (input.value.length < 3) {
+                input.value += key;
+            }
+        }
+    }
+
+    function checkAnswer() {
+        const input = document.getElementById('user-answer');
+        const ans = parseInt(input.value);
+        if (isNaN(ans)) return;
+
+        const correctAnswer = n1 * n2;
+
+        if (ans === correctAnswer) {
+            score++;
+            document.getElementById('score').innerText = score;
+        } else {
+            wrongAnswers++;
+            wrongList.push(`${n1} × ${n2} = ${correctAnswer} (а не ${ans})`);
+        }
+        generateTask();
+    }
+
+    function endGame() {
+        clearInterval(timerInterval);
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('final-wrong').innerText = wrongAnswers;
+
+        document.querySelectorAll('.hero-marker').forEach(el => el.remove());
+        
+        let motivText = "";
+        
+        if (score >= 35) {
+            document.getElementById('p1').innerHTML += '<div class="hero-marker">🙋‍♂️</div>';
+            motivText = "🏆 ТИ НА ВЕРШИНІ! Абсолютне Золото! Ти знаєш таблицю множення як суперкомп'ютер. Пишаюся тобою!";
+        } else if (score >= 20) {
+            document.getElementById('p2').innerHTML += '<div class="hero-marker">🙋‍♂️</div>';
+            motivText = "🥈 Срібний призер! Результат чудовий. Тобі не вистачає зовсім трохи швидкості до Золота. Спробуй ще раз!";
+        } else if (score >= 10) {
+            document.getElementById('p3').innerHTML += '<div class="hero-marker">🙋‍♂️</div>';
+            motivText = "🥉 Бронзове місце твоє! Гарний старт. Твоя наступна мета — наздогнати Срібного призера!";
+        } else {
+            motivText = "🏃‍♂️ Ти на розігріві! Поки що ти поруч із подіумом. Набери 10 балів, щоб застрибнути на 3-тє місце. Ти точно зможеш!";
+        }
+        
+        document.getElementById('motivation-text').innerText = motivText;
+
+        const errorsWrapper = document.getElementById('errors-wrapper');
+        const errorsList = document.getElementById('errors-list');
+        errorsList.innerHTML = '';
+        
+        if (wrongList.length > 0) {
+            errorsWrapper.classList.remove('hidden');
+            const uniqueErrors = [...new Set(wrongList)];
+            uniqueErrors.forEach(err => {
+                const item = document.createElement('div');
+                item.innerText = `❌ ${err}`;
+                item.style.margin = "3px 0";
+                errorsList.appendChild(item);
+            });
+        } else {
+            errorsWrapper.classList.add('hidden');
+        }
+    }
+
+    function restartGame() {
+        startGame();
+    }
+</script>
+</body>
+</html>
